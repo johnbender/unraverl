@@ -6,6 +6,7 @@
 
 parse_transform(Form, _options) ->
     BeforeFilters = alter(Form, find_attribute(Form, before_exec)),
+    io:format("~p", [BeforeFilters]),
     BeforeFilters.
 
 alter(Form, []) -> Form;

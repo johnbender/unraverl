@@ -29,7 +29,7 @@ before_exec(Form, [Original|T], Filter) ->
 build_parent_function({Original, Arity}, {Filter, FArity}, RenamedFunc, LineNum) ->
     OriginalArgs = build_args_list_form(Arity, LineNum, "Original"),
     FilterResultArgs = build_var_list_form(Arity, LineNum, "Result"),
-    FilterArgs = case {Arity > 1, FArity == 1} of
+    FilterArgs = case {Arity == FArity, FArity == 1} of
 		     {_, true} ->
 			 [build_var_list_form(Arity, LineNum, "Original")];
 		     {true, false} ->
