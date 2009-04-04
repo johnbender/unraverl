@@ -3,12 +3,16 @@
 -export([parse_transform/2]).
 
 -define(MODS, [filters]).
+-define(ALTERATIONS, [before_exec, after_exec]). 
 
 parse_transform(Form, _options) ->
-    BeforeFilters = alter(Form, find_attribute(Form, before_exec)),
-    io:format("~p", [BeforeFilters]),
-    BeforeFilters.
+    perform_alterations(Form, ?ALTERATIONS).
 
+perform_alterations(Form, []) -> Form;
+perform_alterations(Form, [Alteration|T]) ->
+    Altered = alter(Form, find_attribute(Form, Alteration)),
+    perform_alterations(Altered, T).
+    
 alter(Form, []) -> Form;
 alter(Form, [{attribute,_,Alteration,{ToBeAltered, With}}|T]) ->
     Module = get_module_for_alteration(Alteration),
