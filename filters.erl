@@ -1,7 +1,5 @@
 -module(filters).
-
 -export([before_exec/3, after_exec/3]).
-
  
 -define(before_form, {function,LineNum,Original,Arity,
 		      [{clause,
@@ -13,6 +11,15 @@
 			 {call,LineNum,
 			  {atom,LineNum, RenamedFunc},
 			  RenamedFuncArgs}]}]}).
+
+-define(after_form, {function,LineNum,Original,Arity,
+		     [{clause, LineNum,
+		       OriginalArgs,
+		       [],
+		       [{match,LineNum,
+			 RenamdFuncResultArg,
+			 {call,LineNum,{atom,LineNum, RenamedFunc}, OriginalArgs}},
+			{call,LineNum,{atom,LineNum,Filter},FilterArgs}]}]}).
 
 
 before_exec(Form, Funcs, Filter) ->
@@ -26,8 +33,8 @@ after_exec(Form, Funcs, Filter) ->
 
 apply_alteration(Form, [], _filter, _alteration) -> Form;
 apply_alteration(Form, [Original|T], Filter, FunctionAddition) ->
-    {function, LineNum, Original, Arity, Clauses} = find_function(Form, Original),
-    {function, _linenum, Filter, FilterArity, _clauses} = find_function(Form, Filter),
+    {function, LineNum, Original, Arity, Clauses} = util:find_function(Form, Original),
+    {function, _linenum, Filter, FilterArity, _clauses} = util:find_function(Form, Filter),
     RenamedFunc = rename(before, Original, Filter),
     Renamed = {function, LineNum, RenamedFunc, Arity, Clauses},
     Replaced = lists:keyreplace(Original, 3, Form, Renamed),
@@ -48,17 +55,6 @@ before_exec_function({Original, Arity}, {Filter, FArity}, RenamedFunc, LineNum) 
     RenamedFuncArgs = args_list_form(Arity, LineNum, "Result"),
     ?before_form.
 
-
--define(after_form, {function,LineNum,Original,Arity,
-		     [{clause, LineNum,
-		       OriginalArgs,
-		       [],
-		       [{match,LineNum,
-			 RenamdFuncResultArg,
-			 {call,LineNum,{atom,LineNum, RenamedFunc}, OriginalArgs}},
-			{call,LineNum,{atom,LineNum,Filter},FilterArgs}]}]}).
-
-
 after_exec_function({Original, Arity}, {Filter, FArity}, RenamedFunc, LineNum) ->
     OriginalArgs = args_list_form(Arity, LineNum, "Original"),
     RenamdFuncResultArg = var_form(LineNum, "Result1"),
@@ -69,10 +65,11 @@ after_exec_function({Original, Arity}, {Filter, FArity}, RenamedFunc, LineNum) -
 		 end,
     ?after_form.
     
+
 args_list_form(Count, LineNum, NameSeed) when is_list(NameSeed)  ->
     [{var, LineNum, list_to_atom(NameSeed ++ to_string(Num))} || Num <- lists:reverse(lists:seq(1, Count))].
-    
 
+    
 var_list_form(0, LineNum, _nameseed) ->
     {nil, LineNum};
 
@@ -86,10 +83,6 @@ var_form(Num, Name) when is_list(Name) ->
 
 var_form(Num, Name) when is_number(Num) ->
     {var, Num, Name}.
-    
-find_function(Form, Name) ->
-    [Result] = [{SType, LineNum, SName, Arity, Clauses} || {SType, LineNum, SName, Arity, Clauses} <- Form, Name == SName],
-    Result.
 
 rename(Type, Original, Filter) ->
     Name = lists:flatten(io_lib:format("~s_~s_~s" , [to_string(Type), to_string(Original), to_string(Filter)])),
