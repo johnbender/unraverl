@@ -27,7 +27,6 @@ before_exec(Form, Funcs, Filter) ->
     apply_alteration(Form, Funcs, Filter, Fun).
 
 after_exec(Form, Funcs, Filter) ->
-    io:format("~s", ["here"]),
     Fun = fun(A, B, C, D) -> after_exec_function(A, B, C, D) end,
     apply_alteration(Form, Funcs, Filter, Fun).
 

@@ -1,20 +1,15 @@
 -module(util).
 
--export([find_function/2, replace/3, replace/2]). 
-
--define(call_check, fun({call,_,{atom,_,Name},_}) -> true;
-                       (_) -> false
-                    end).
-
--define(function_check, fun({_, _, Name, _, _}) -> true;
-                           (_) -> false
-                        end).
+-export([find_function/2, find_greater_arity/3, replace/3, replace/2, find_attribute/2]). 
 
 
 find_function(Form, Name) ->
     [Result] = [{SType, LineNum, SName, Arity, Clauses} || {SType, LineNum, SName, Arity, Clauses} <- Form, Name == SName],
     Result.
 
+find_greater_arity(Form, Name, Arity) ->
+    [{SType, LineNum, SName, SArity, Clauses} || {SType, LineNum, SName, SArity, Clauses} <- Form, Name == SName, Arity < SArity].
+    
 
 %If the fun can handle both matching and replacement
 replace(Form, ReplaceFun) when is_tuple(Form) ->
@@ -63,5 +58,10 @@ map_tuple([Head|T], Module, Function, Args, Acc) ->
     map_tuple(T, Module, Function, Args, Tuple);
 
 map_tuple([], _, _, _, Acc) -> Acc.
+
+
+find_attribute(Form, Name) ->
+    [{SType, LineNum, SName, Value} || {SType, LineNum, SName, Value} <- Form, Name == SName].
+
 
     

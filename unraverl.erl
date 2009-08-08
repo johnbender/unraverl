@@ -1,4 +1,3 @@
-
 -module(unraverl).
 -export([parse_transform/2]).
 
@@ -14,23 +13,20 @@ parse_transform(Form, _options) ->
 
 attribute_alterations(Form, []) -> Form;
 attribute_alterations(Form, [Alteration|T]) ->
-    Altered = per_attr_alter(Form, find_attribute(Form, Alteration)),
+    Altered = per_attribute_alter(Form, util:find_attribute(Form, Alteration)),
     attribute_alterations(Altered, T).
 
-per_attr_alter(Form, []) -> Form;
-per_attr_alter(Form, [{attribute,_,Alteration,{ToBeAltered, With}}|T]) ->
+per_attribute_alter(Form, []) -> Form;
+per_attribute_alter(Form, [{attribute,_,Alteration,{ToBeAltered, With}}|T]) ->
     AlteredForm = module_call(Alteration, [Form, ToBeAltered, With]),
-    per_attr_alter(AlteredForm, T).
+    per_attribute_alter(AlteredForm, T).
 
 lang_alterations(Form, []) -> Form;
-lang_alterations(Form, [Alteration|T]) -> 
+lang_alterations(Form, [Alteration|T]) ->
     lang_alterations(module_call(Alteration, [Form]), T).
 
 module_call(Alteration, Args) when is_list(Args) ->
     apply(get_module_for_alteration(Alteration), Alteration, Args).
-
-find_attribute(Form, Name) ->
-    [{SType, LineNum, SName, Value} || {SType, LineNum, SName, Value} <- Form, Name == SName].
 
 get_module_for_alteration(Function) ->
     [Module] = [X || X<-?MODS, lists:keymember(Function, 1, X:module_info(exports)) ],
