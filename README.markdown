@@ -6,6 +6,9 @@ transformation by including the following attribute at the top of your module:
 
     -compile([{parse_transform, unraverl}]).
 
+Its rough around the edges and has no testing or build scripts at this point, 
+but feel free to play around.
+
 This parse transform provides two facilities:
 
 Filters
