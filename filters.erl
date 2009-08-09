@@ -42,38 +42,33 @@ apply_alteration(Form, [Original|T], Filter, FunctionAddition) ->
     
 
 before_exec_function({Original, Arity}, {Filter, FArity}, RenamedFunc, LineNum) ->
-    OriginalArgs = args_list_form(Arity, LineNum, "Original"),
+    OriginalArgs = util:args_list_form(Arity, LineNum, "Original"),
     FilterResultArgs = var_list_form(Arity, LineNum, "Result"),
     FilterArgs = case {Arity == FArity, FArity == 1} of
 		     {true, _} ->
-			 args_list_form(Arity, LineNum, "Original");
+			 util:args_list_form(Arity, LineNum, "Original");
 		     {_, true} ->
 			 [var_list_form(Arity, LineNum, "Original")];
 		     _ -> throw(invalide_filter_arity)
 		 end,
-    RenamedFuncArgs = args_list_form(Arity, LineNum, "Result"),
+    RenamedFuncArgs = util:args_list_form(Arity, LineNum, "Result"),
     ?before_form.
 
 after_exec_function({Original, Arity}, {Filter, FArity}, RenamedFunc, LineNum) ->
-    OriginalArgs = args_list_form(Arity, LineNum, "Original"),
+    OriginalArgs = util:args_list_form(Arity, LineNum, "Original"),
     RenamdFuncResultArg = var_form(LineNum, "Result1"),
     FilterArgs = case FArity == 1 of
 		     true ->
-			 args_list_form(1, LineNum, "Result");
+			 util:args_list_form(1, LineNum, "Result");
 		     false -> throw(invalide_filter_arity)
 		 end,
     ?after_form.
-    
-
-args_list_form(Count, LineNum, NameSeed) when is_list(NameSeed)  ->
-    [{var, LineNum, list_to_atom(NameSeed ++ to_string(Num))} || Num <- lists:reverse(lists:seq(1, Count))].
-
     
 var_list_form(0, LineNum, _nameseed) ->
     {nil, LineNum};
 
 var_list_form(Count, LineNum, NameSeed) ->
-    VarName = list_to_atom(NameSeed ++ to_string(Count)),
+    VarName = list_to_atom(NameSeed ++ util:to_string(Count)),
     {cons, LineNum, var_form(LineNum, VarName), var_list_form(Count-1, LineNum, NameSeed)}.
     
     
@@ -84,7 +79,7 @@ var_form(Num, Name) when is_number(Num) ->
     {var, Num, Name}.
 
 rename(Type, Original, Filter) ->
-    Name = lists:flatten(io_lib:format("~s_~s_~s" , [to_string(Type), to_string(Original), to_string(Filter)])),
+    Name = lists:flatten(io_lib:format("~s_~s_~s" , [util:to_string(Type), util:to_string(Original), util:to_string(Filter)])),
     list_to_atom(Name).
 
 
@@ -96,15 +91,4 @@ eof_line(Form)->
     {eof, LineNum} = lists:last(Form),
     LineNum.
     
-to_string(Object) when is_number(Object) ->
-    lists:flatten(io_lib:format("~w" , [Object]));
-
-to_string(Object) when is_atom(Object) ->
-    atom_to_list(Object); 
-
-to_string(Object) when is_binary(Object) ->
-    binary_to_list(Object);
-
-to_string(Object) when is_list(Object) ->
-    Object.
 

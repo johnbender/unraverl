@@ -1,14 +1,16 @@
 -module(util).
 
--export([find_function/2, find_greater_arity/3, replace/3, replace/2, find_attribute/2]). 
+-export([find_function/2, 
+	 replace/3, 
+	 replace/2, 
+	 find_attribute/2,
+	 args_list_form/3,
+	 to_string/1]). 
 
 
 find_function(Form, Name) ->
     [Result] = [{SType, LineNum, SName, Arity, Clauses} || {SType, LineNum, SName, Arity, Clauses} <- Form, Name == SName],
     Result.
-
-find_greater_arity(Form, Name, Arity) ->
-    [{SType, LineNum, SName, SArity, Clauses} || {SType, LineNum, SName, SArity, Clauses} <- Form, Name == SName, Arity < SArity].
     
 
 %If the fun can handle both matching and replacement
@@ -64,4 +66,18 @@ find_attribute(Form, Name) ->
     [{SType, LineNum, SName, Value} || {SType, LineNum, SName, Value} <- Form, Name == SName].
 
 
-    
+args_list_form(Count, LineNum, NameSeed) when is_list(NameSeed)  ->
+    [{var, LineNum, list_to_atom(NameSeed ++ to_string(Num))} || Num <- lists:reverse(lists:seq(1, Count))].
+
+
+to_string(Object) when is_number(Object) ->
+    lists:flatten(io_lib:format("~w" , [Object]));
+
+to_string(Object) when is_atom(Object) ->
+    atom_to_list(Object); 
+
+to_string(Object) when is_binary(Object) ->
+    binary_to_list(Object);
+
+to_string(Object) when is_list(Object) ->
+    Object.
